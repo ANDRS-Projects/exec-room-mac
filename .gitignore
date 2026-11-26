@@ -1,0 +1,10 @@
+# Build output: the app, the disk image and the downloaded Node and Exec Room release.
+build/
+dist/
+*.dmg
+.DS_Store
+# claude-mem writes a CLAUDE.md into folders it sees; only the root one is the project's.
+**/CLAUDE.md
+!/CLAUDE.md
+# Local notes kept by Claude Code sessions; never published.
+.claude/memory/
