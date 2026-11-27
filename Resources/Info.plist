@@ -20,8 +20,6 @@
 	<string>6.0</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>13.0</string>
-	<key>LSUIElement</key>
-	<true/>
 	<key>NSHumanReadableCopyright</key>
 	<string>Exec Room by ANDRS. AGPL-3.0. Runs Claude Code, which you install and sign in to yourself.</string>
 </dict>

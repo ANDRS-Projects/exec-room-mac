@@ -8,7 +8,10 @@ own repository. You can build the app yourself (see Building it).
 
 ## What it does
 
-- A menu-bar app (no Dock icon). Starting it starts your room and opens it in your browser.
+- An app in the Dock and the menu bar. Starting it starts your room and opens it in your browser;
+  clicking the Dock icon opens it again. The same menu is in the menu bar icon, the app menu (top
+  left) and on the Dock icon (right-click), since a full menu bar on a MacBook hides icons behind the
+  camera notch.
 - **First start** asks two things:
   1. **Where agents work.** Agents start in this folder and save their drafts in its `drafts`
      folder. Suggested: `~/Documents/Exec Room`. Every agent can read what's in it, so use a folder

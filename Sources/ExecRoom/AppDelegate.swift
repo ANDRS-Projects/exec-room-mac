@@ -18,6 +18,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         let menu = NSMenu()
         menu.delegate = self
         statusItem.menu = menu
+        // The app menu (top left, with Quit ⌘Q) has the same items: on a MacBook with a full menu bar, macOS hides
+        // icons behind the camera notch, so the menu-bar icon alone can't be relied on. The Dock icon has them too.
+        let mainMenu = NSMenu()
+        let appItem = NSMenuItem()
+        let appMenu = NSMenu(title: "Exec Room")
+        appMenu.delegate = self
+        appItem.submenu = appMenu
+        mainMenu.addItem(appItem)
+        NSApp.mainMenu = mainMenu
 
         room.onChange = { [weak self] in self?.roomChanged() }
         room.onReady = { [weak self] in
@@ -65,7 +74,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     // MARK: Menu
 
+    /// Right-click on the Dock icon: the same items (macOS adds its own Quit there).
+    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
+        let menu = NSMenu()
+        fill(menu, withQuit: false)
+        return menu
+    }
+
+    /// A click on the Dock icon (or opening the app again while it runs) opens the room.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        if room.state == .running { openRoom() }
+        return true
+    }
+
     func menuNeedsUpdate(_ menu: NSMenu) {
+        fill(menu, withQuit: true)
+    }
+
+    private func fill(_ menu: NSMenu, withQuit: Bool) {
         menu.removeAllItems()
         menu.addItem(disabled(statusText))
         menu.addItem(.separator())
@@ -96,8 +122,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
         pay.submenu = payMenu
         menu.addItem(pay)
-        menu.addItem(.separator())
-        menu.addItem(item("Quit Exec Room", #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
+        if withQuit {
+            menu.addItem(.separator())
+            menu.addItem(item("Quit Exec Room", #selector(NSApplication.terminate(_:)), key: "q", target: NSApp))
+        }
     }
 
     private var statusText: String {
