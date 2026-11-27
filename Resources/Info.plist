@@ -8,6 +8,8 @@
 	<string>Exec Room</string>
 	<key>CFBundleIdentifier</key>
 	<string>nu.andrs.exec-room</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
 	<key>CFBundleExecutable</key>
 	<string>ExecRoom</string>
 	<key>CFBundlePackageType</key>

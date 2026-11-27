@@ -8,8 +8,9 @@
 #              Homebrew's Node can't be used: it needs other Homebrew files that other Macs don't have.
 # EXEC_ROOM_DIR a clone of github.com/ANDRS-Projects/exec-room that has the pinned commit (`git fetch` it first).
 #
-# The app is signed ad hoc, which is enough to run it on this Mac. Signing for other Macs and Apple's notarisation
-# come with the release build.
+# SIGN_ID       optional: the signing certificate, "Developer ID Application: <name> (<team id>)". Without it the
+#               app is signed for this Mac only ("-"). Both use Apple's hardened runtime, so a local build behaves as
+#               a release does. scripts/release.sh signs with a Developer ID and has Apple notarise the result.
 set -eu
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -17,6 +18,7 @@ VERSION=$(sed -n 's/^version: *//p' "$ROOT/exec-room.ref")
 REF=$(sed -n 's/^commit: *//p' "$ROOT/exec-room.ref")
 NODE_VERSION=$(sed -n 's/^node: *//p' "$ROOT/exec-room.ref")
 APP="$ROOT/build/Exec Room.app"
+SIGN_ID=${SIGN_ID:--}
 
 fail() { echo "build-app: $*" >&2; exit 1; }
 
@@ -54,10 +56,42 @@ code="$APP/Contents/Resources/exec-room"
 git -C "$EXEC_ROOM_DIR" archive "$REF" room-server.js mcp-catalog.json package.json package-lock.json public agents \
     LICENSE README.md THIRD-PARTY-NOTICES.md | tar -x -C "$code"
 echo "$REF" > "$code/COMMIT"
+
+echo "build-app: the icon, from the room's own mark"
+# public/mark.svg at the pinned commit, scaled into Apple's icon grid (824 of 1024 pixels, centred), then every size
+# macOS asks for. qlmanage renders SVG with the system's WebKit.
+icon_tmp=$(mktemp -d)
+python3 - "$code/public/mark.svg" "$icon_tmp/icon.svg" <<'PY'
+import re, sys
+mark = open(sys.argv[1]).read()
+inner = re.sub(r"<title>.*?</title>", "", re.search(r"<svg[^>]*>(.*)</svg>", mark, re.S).group(1), flags=re.S)
+k = 824 / 60  # the mark's square runs from 2 to 62 in its 64-unit box
+open(sys.argv[2], "w").write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">'
+                             f'<g transform="translate({100 - 2 * k:.3f} {100 - 2 * k:.3f}) scale({k:.5f})">{inner}</g></svg>')
+PY
+qlmanage -t -s 1024 -o "$icon_tmp" "$icon_tmp/icon.svg" >/dev/null 2>&1
+[ -s "$icon_tmp/icon.svg.png" ] || fail "couldn't draw the icon from public/mark.svg"
+mkdir "$icon_tmp/AppIcon.iconset"
+for size in 16 32 128 256 512; do
+    sips -z $size $size "$icon_tmp/icon.svg.png" --out "$icon_tmp/AppIcon.iconset/icon_${size}x${size}.png" >/dev/null
+    sips -z $((size * 2)) $((size * 2)) "$icon_tmp/icon.svg.png" --out "$icon_tmp/AppIcon.iconset/icon_${size}x${size}@2x.png" >/dev/null
+done
+iconutil -c icns "$icon_tmp/AppIcon.iconset" -o "$APP/Contents/Resources/AppIcon.icns"
+rm -rf "$icon_tmp"
 (cd "$code" && PATH="$NODE_DIR/bin:/usr/bin:/bin" npm ci --omit=dev --ignore-scripts --no-audit --no-fund --loglevel=error)
 
-echo "build-app: signing (ad hoc, for this Mac)"
-codesign --force --sign - "$APP/Contents/Resources/node/bin/node"
-codesign --force --sign - "$APP"
+# Inside out: Node first (with what V8 needs, see Resources/node.entitlements), then the app around it. A Developer ID
+# signature gets Apple's secure timestamp, which notarisation requires.
+if [ "$SIGN_ID" = "-" ]; then
+    echo "build-app: signing for this Mac only"
+    stamp=""
+else
+    echo "build-app: signing as $SIGN_ID"
+    stamp="--timestamp"
+fi
+codesign --force --sign "$SIGN_ID" --options runtime $stamp --entitlements "$ROOT/Resources/node.entitlements" \
+    "$APP/Contents/Resources/node/bin/node"
+codesign --force --sign "$SIGN_ID" --options runtime $stamp "$APP"
+codesign --verify --strict --deep "$APP" || fail "the signature doesn't check out"
 
 echo "build-app: $APP ($(du -sh "$APP" | cut -f1))"
