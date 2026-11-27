@@ -8,8 +8,11 @@ own repository. You can build the app yourself (see Building it).
 
 ## What it does
 
-- An app in the Dock and the menu bar. Starting it starts your room and opens it in your browser;
-  clicking the Dock icon opens it again. The same menu is in the menu bar icon, the app menu (top
+- An app in the Dock and the menu bar. Starting it starts your room and opens it in its own window
+  (Safari's engine, no tabs or address bar); clicking the Dock icon brings the window back. Closing
+  the window leaves the room running; **Open in Browser** is in the menu. Links that leave the room
+  (Connect sign-ins, Notion pages, GitHub, mail drafts) open in your browser or mail app, and a
+  Connect sign-in finished there shows up in the window by itself. The same menu is in the menu bar icon, the app menu (top
   left) and on the Dock icon (right-click), since a full menu bar on a MacBook hides icons behind the
   camera notch.
 - **First start** asks two things:
@@ -20,7 +23,7 @@ own repository. You can build the app yourself (see Building it).
      a **Sign in to Claude** button, and the app never sees your sign-in), or an Anthropic API key,
      paid per use with a limit per run and per day. The key is kept in your Mac's Keychain and
      handed only to the agent runs.
-- **The menu:** whether the room is running, **Open Exec Room**, **Show Log**, **Change Work
+- **The menu:** whether the room is running, **Open Exec Room**, **Open in Browser**, **Show Log**, **Change Work
   Folder…**, **Pay With** (plan or key) and **Quit Exec Room**. Changing the folder or how you pay
   restarts the room and asks first, since agents that are working stop.
 - **Quit stops the room and every agent run.** If the app was force-quit and left its room running,

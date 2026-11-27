@@ -1,8 +1,9 @@
 import AppKit
 
-/// The menu-bar icon and its menu, and the two questions at first start (the work folder, then plan or API key).
+/// The menus (menu-bar icon, Dock icon, app menu), the room's window, and the two questions at first start (the work folder, then plan or API key).
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     private let room = Room()
+    private let roomWindow = RoomWindow()
     private var statusItem: NSStatusItem!
     private var openedThisLaunch = false
     private var quitting = false
@@ -26,13 +27,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         appMenu.delegate = self
         appItem.submenu = appMenu
         mainMenu.addItem(appItem)
+        addStandardMenus(to: mainMenu)
         NSApp.mainMenu = mainMenu
 
         room.onChange = { [weak self] in self?.roomChanged() }
+        // Once the room answers: the window opens (the first time) or loads the restarted room.
         room.onReady = { [weak self] in
-            guard let self, !self.openedThisLaunch else { return }
-            self.openedThisLaunch = true
-            NSWorkspace.shared.open(Settings.roomURL)
+            guard let self else { return }
+            if !self.openedThisLaunch {
+                self.openedThisLaunch = true
+                self.roomWindow.show(reload: true)
+            } else {
+                self.roomWindow.load()
+            }
         }
 
         // First start: both questions, in order. Cancelling either quits, since the room can't start without them.
@@ -93,12 +100,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
 
     private func fill(_ menu: NSMenu, withQuit: Bool) {
         menu.removeAllItems()
+        menu.autoenablesItems = false  // the items below say themselves when they can be used
         menu.addItem(disabled(statusText))
         menu.addItem(.separator())
 
         let open = item("Open Exec Room", #selector(openRoom), key: "o")
         open.isEnabled = room.state == .running
         menu.addItem(open)
+        let browser = item("Open in Browser", #selector(openInBrowser))
+        browser.isEnabled = room.state == .running
+        menu.addItem(browser)
         switch room.state {
         case .stopped, .failed: menu.addItem(item("Start Exec Room", #selector(startAgain)))
         default: break
@@ -151,7 +162,36 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         }
     }
 
-    @objc private func openRoom() { NSWorkspace.shared.open(Settings.roomURL) }
+    @objc private func openRoom() { roomWindow.show() }
+    @objc private func openInBrowser() { NSWorkspace.shared.open(Settings.roomURL) }
+    @objc private func reloadRoom() { roomWindow.reload() }
+    @objc private func zoomIn() { roomWindow.zoom(by: 0.1) }
+    @objc private func zoomOut() { roomWindow.zoom(by: -0.1) }
+    @objc private func actualSize() { roomWindow.zoom(by: nil) }
+
+    /// Edit (so ⌘C, ⌘V and ⌘A work in the page), View and Window, as any Mac app with a window has.
+    private func addStandardMenus(to main: NSMenu) {
+        func submenu(_ title: String, _ items: [NSMenuItem]) {
+            let holder = NSMenuItem(title: title, action: nil, keyEquivalent: "")
+            let menu = NSMenu(title: title)
+            items.forEach(menu.addItem)
+            holder.submenu = menu
+            main.addItem(holder)
+            if title == "Window" { NSApp.windowsMenu = menu }
+        }
+        func std(_ title: String, _ action: String, _ key: String, _ mods: NSEvent.ModifierFlags = .command) -> NSMenuItem {
+            let item = NSMenuItem(title: title, action: Selector(action), keyEquivalent: key)
+            item.keyEquivalentModifierMask = mods
+            return item
+        }
+        submenu("Edit", [std("Undo", "undo:", "z"), std("Redo", "redo:", "z", [.command, .shift]), .separator(),
+                         std("Cut", "cut:", "x"), std("Copy", "copy:", "c"), std("Paste", "paste:", "v"),
+                         std("Select All", "selectAll:", "a")])
+        submenu("View", [item("Reload", #selector(reloadRoom), key: "r"), .separator(),
+                         item("Actual Size", #selector(actualSize), key: "0"), item("Zoom In", #selector(zoomIn), key: "="),
+                         item("Zoom Out", #selector(zoomOut), key: "-")])
+        submenu("Window", [std("Minimize", "performMiniaturize:", "m"), std("Close", "performClose:", "w")])
+    }
     @objc private func startAgain() { openedThisLaunch = false; startRoom() }
     @objc private func showLog() {
         if FileManager.default.fileExists(atPath: Settings.logFile.path) {
