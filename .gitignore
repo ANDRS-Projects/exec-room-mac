@@ -1,5 +1,6 @@
 # Build output: the app, the disk image and the downloaded Node and Exec Room release.
 build/
+.build/
 dist/
 *.dmg
 .DS_Store

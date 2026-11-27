@@ -1,0 +1,6 @@
+# What scripts/build-app.sh puts in the app. Change these together, in one pull request.
+# version: the app's version. commit: the exec-room commit it runs (a release tag's commit once one has app mode).
+# node: the nodejs.org Node version it brings.
+version: 0.1.0
+commit: abf7efe85c91d2cedabed68999e06eab05420aa7
+node: 22.23.1
