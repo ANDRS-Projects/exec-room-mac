@@ -23,7 +23,7 @@ own repository. You can build the app yourself (see Building it).
      a **Sign in to Claude** button, and the app never sees your sign-in), or an Anthropic API key,
      paid per use with a limit per run and per day. The key is kept in your Mac's Keychain and
      handed only to the agent runs.
-- **The menu:** whether the room is running, **Open Exec Room**, **Open in Browser**, **Show Log**, **Change Work
+- **The menu:** whether the room is running, **Show Room Window**, **Open in Browser**, **Show Log**, **Change Work
   Folder…**, **Pay With** (plan or key) and **Quit Exec Room**. Changing the folder or how you pay
   restarts the room and asks first, since agents that are working stop.
 - **Quit stops the room and every agent run.** If the app was force-quit and left its room running,

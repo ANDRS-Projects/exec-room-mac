@@ -104,7 +104,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.addItem(disabled(statusText))
         menu.addItem(.separator())
 
-        let open = item("Open Exec Room", #selector(openRoom), key: "o")
+        let open = item("Show Room Window", #selector(openRoom), key: "o")
         open.isEnabled = room.state == .running
         menu.addItem(open)
         let browser = item("Open in Browser", #selector(openInBrowser))
