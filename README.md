@@ -76,7 +76,9 @@ once per Mac:
    holder can make one: in Keychain Access, Certificate Assistant → Request a Certificate From a
    Certificate Authority (saved to disk), then upload that request at
    [developer.apple.com](https://developer.apple.com/account/resources/certificates/list) → Certificates
-   → + → Developer ID Application, and open the certificate you download.
+   → + → Developer ID Application, and open the certificate you download. If `security find-identity -v -p codesigning` doesn't list
+   it as valid, Apple's in-between certificate is missing (Xcode normally installs it): import
+   "Developer ID - G2" from [Apple's certificate page](https://www.apple.com/certificateauthority/).
 2. **A notarisation sign-in** saved in the Keychain as `exec-room`, with an App Store Connect API key
    (Users and Access → Integrations → Team Keys, role Developer):
    `xcrun notarytool store-credentials exec-room --key <AuthKey_….p8> --key-id <key id> --issuer <issuer id>`.
