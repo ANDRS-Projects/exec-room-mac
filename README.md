@@ -3,8 +3,25 @@
 A Mac app for [Exec Room](https://github.com/ANDRS-Projects/exec-room): install it and start your
 room from the Dock or the menu bar, without a terminal.
 
-**Status: in development. There is no download yet.** Until there is, install Exec Room from its
-own repository. You can build the app yourself (see Building it).
+## Download
+
+**[Download the latest version](https://github.com/ANDRS-Projects/exec-room-mac/releases/latest)**
+(`Exec-Room-<version>.dmg`, about 45 MB). For Macs with Apple silicon (M1 or later), macOS 13 or later.
+
+1. **Install Claude Code** first, if you haven't: see the
+   [Claude Code docs](https://code.claude.com/docs). The app runs Claude Code; it doesn't include it.
+2. **Open the downloaded file** and drag **Exec Room** onto **Applications**.
+3. **Open Exec Room** from Applications. The first time, macOS asks whether to open an app downloaded
+   from the internet; it names ANDRS Projects Europe B.V. as the developer and says Apple checked it.
+   Click **Open**.
+4. **Answer two questions:** where agents work, and whether they run on your Claude plan or on an
+   Anthropic API key. The room then opens in its own window. If Claude Code isn't signed in yet, the
+   page has a **Sign in to Claude** button.
+
+The app is signed by ANDRS Projects Europe B.V. and notarised by Apple. Each release lists the
+SHA-256 of its download, so you can check it with `shasum -a 256 Exec-Room-<version>.dmg`.
+**Updating:** quit Exec Room, download the new version and drag it onto Applications again; your rooms, chats and
+settings stay, since they live outside the app.
 
 ## What it does
 
@@ -88,6 +105,9 @@ Then:
 ```bash
 SIGN_ID="Developer ID Application: <name> (<team id>)" NODE_DIR=… EXEC_ROOM_DIR=… scripts/release.sh
 ```
+
+To publish it: `gh release create v<version> dist/Exec-Room-<version>.dmg dist/Exec-Room-<version>.dmg.sha256`
+(with the release notes), after the version and the pinned Exec Room release in `exec-room.ref` are merged.
 
 Apple checks every program inside; each of the two submissions (the app, then the disk image) can
 take a few minutes, and a refusal prints Apple's reasons. Node is signed again with only what its
