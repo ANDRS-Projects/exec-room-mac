@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- What the app's copy of Node may do under Apple's hardened runtime: run V8's compiled JavaScript. Node's own
+     signature also allows debugging (get-task-allow), which Apple's notarisation refuses, so the app signs its copy
+     again with only these two. Tested: the room starts and serves its page, and Node can start other programs. -->
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.cs.allow-unsigned-executable-memory</key>
+	<true/>
+</dict>
+</plist>

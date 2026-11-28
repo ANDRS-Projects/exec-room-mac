@@ -61,9 +61,39 @@ version in [`exec-room.ref`](exec-room.ref), and a clone of Exec Room:
 NODE_DIR=~/Downloads/node-v22.23.1-darwin-arm64 EXEC_ROOM_DIR=~/exec-room scripts/build-app.sh
 ```
 
-The app is written to `build/Exec Room.app` (about 120 MB), signed only for your own Mac.
+The app is written to `build/Exec Room.app` (about 120 MB), signed only for your own Mac unless
+`SIGN_ID` names a Developer ID certificate (see Releasing).
 `exec-room.ref` pins the app's version, the Exec Room commit and the Node.js version; the script
 refuses a Node that isn't the official build or isn't that version.
+
+## Releasing
+
+`scripts/release.sh` builds the download: the app signed with a Developer ID and notarised by Apple,
+inside a signed and notarised disk image, `dist/Exec-Room-<version>.dmg`, with its SHA-256. It needs,
+once per Mac:
+
+1. **A "Developer ID Application" certificate** in your Keychain. Only the Apple Developer account
+   holder can make one: in Keychain Access, Certificate Assistant → Request a Certificate From a
+   Certificate Authority (saved to disk), then upload that request at
+   [developer.apple.com](https://developer.apple.com/account/resources/certificates/list) → Certificates
+   → + → Developer ID Application, and open the certificate you download. If `security find-identity -v -p codesigning` doesn't list
+   it as valid, Apple's in-between certificate is missing (Xcode normally installs it): import
+   "Developer ID - G2" from [Apple's certificate page](https://www.apple.com/certificateauthority/).
+2. **A notarisation sign-in** saved in the Keychain as `exec-room`, with an App Store Connect API key
+   (Users and Access → Integrations → Team Keys, role Developer):
+   `xcrun notarytool store-credentials exec-room --key <AuthKey_….p8> --key-id <key id> --issuer <issuer id>`.
+
+Then:
+
+```bash
+SIGN_ID="Developer ID Application: <name> (<team id>)" NODE_DIR=… EXEC_ROOM_DIR=… scripts/release.sh
+```
+
+Apple checks every program inside; each of the two submissions (the app, then the disk image) can
+take a few minutes, and a refusal prints Apple's reasons. Node is signed again with only what its
+JavaScript engine needs ([`Resources/node.entitlements`](Resources/node.entitlements)): its own
+signature also allows debugging, which notarisation refuses. The icon is the room's own mark
+(`public/mark.svg` at the pinned commit).
 
 ## License
 
